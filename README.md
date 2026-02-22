@@ -1,68 +1,65 @@
-# Automated Recruiter 🤖
+# Automated Recruiter System
 
-A professional Python-based automation tool designed to scrape employee data from LinkedIn company pages and identify the best candidates for **MERN Stack** projects using AI analysis and smart keyword matching.
+A Python-based automation framework designed for extracting employee information from LinkedIn company pages and identifying candidates for MERN Stack roles using artificial intelligence and weighted keyword evaluation.
 
-## 🚀 Key Features
+## Functional Overview
 
-- **LinkedIn Scraper**: Uses Selenium to navigate company "People" tabs and extract employee names, headlines, and profile URLs.
-- **Manual Login Integration**: Avoids bot detection and CAPTCHAs by allowing the user to log in manually before the scraping starts.
-- **AI Recruiter (Step 2)**: Integrates with **OpenAI GPT-4o** to analyze candidate headlines and provide a relevance score based on specific technical criteria (MongoDB, Express, React, Node.js).
-- **Smart Fallback Ranking**: If no API key is provided or the quota is exceeded, the bot uses an internal weighted keyword matching engine to rank candidates.
-- **Multi-Format Export**: Automatically generates detailed reports in both **CSV** (for Excel/Google Sheets) and **JSON** formats.
+The Automated Recruiter System streamlines the technical recruitment process by collecting data directly from LinkedIn and applying a scoring logic to identify high-potential candidates. The system handles anti-scraping measures through manual session integration and provides robust fallback mechanisms for data analysis.
 
-## 🛠️ Tech Stack
+## Core Features
 
-- **Language**: Python 3.9+
-- **Automation**: Selenium WebDriver
-- **AI**: OpenAI API (GPT-4o)
-- **Data Handling**: JSON, CSV
+- **Automated Data Extraction**: Utilizes Selenium WebDriver to navigate company people pages and capture essential data points including full names, professional headlines, and profile URLs.
+- **Manual Authentication Integration**: Implements a dedicated manual login phase to ensure account safety and bypass automated detection systems.
+- **AI-Driven Candidate Ranking**: Integrated with OpenAI GPT-4o API for advanced natural language processing of professional headlines to determine technical suitability.
+- **Weighted Fallback Engine**: Includes a native ranking algorithm that calculates relevance scores based on technical keyword density (MongoDB, Express, React, Node.js) when API access is unavailable.
+- **Data Export Utilities**: Generates standardized output files in both CSV and JSON formats for integration with external CRM or ATS platforms.
 
-## 📦 Installation
+## Technical Specifications
 
-1.  Clone the repository:
-    ```bash
-    git clone https://github.com/hanikumar0/Automated-Recruiter.git
-    cd Automated-Recruiter
-    ```
+- **Language**: Python 3.9 or higher
+- **Browser Automation**: Selenium WebDriver
+- **AI Integration**: OpenAI API (GPT-4o)
+- **Data Formats**: Structured JSON for raw data, CSV for analytical reports
 
-2.  Install required dependencies:
-    ```bash
-    pip install selenium openai
-    ```
+## Installation and Setup
 
-3.  Ensure you have **Google Chrome** installed.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/hanikumar0/Automated-Recruiter.git
+   cd Automated-Recruiter
+   ```
 
-## 🚀 Usage
+2. Install the necessary Python packages:
+   ```bash
+   pip install selenium openai
+   ```
 
-1.  Run the main script:
-    ```bash
-    python linkedin_scraper.py
-    ```
+3. Ensure that a compatible version of Google Chrome is installed on the host system.
 
-2.  **Scrape Data**:
-    - Choose `s` to start a new scrape.
-    - A Chrome window will open. **Log in manually** to your LinkedIn account.
-    - Once logged in, the script will automatically navigate to the company's people page and begin extraction.
+## Operational Guide
 
-3.  **Process & Rank**:
-    - The script will ask for an OpenAI API Key.
-    - If provided, it uses GPT-4o for deep analysis.
-    - If skipped, it uses a built-in keyword ranking algorithm.
+1. Initiate the main execution script:
+   ```bash
+   python linkedin_scraper.py
+   ```
 
-4.  **View Results**:
-    - Check `best_candidates.csv` for the final ranked list.
+2. Data Collection Process:
+   - Select the option to perform a fresh scrape.
+   - Complete the authentication process manually in the automated browser window.
+   - Allow the system to navigate and scroll through the company profile until the target limit is reached.
 
-## 📂 Project Structure
+3. Analysis and Export:
+   - The system will prompt for an OpenAI API key to perform advanced analysis.
+   - If a key is not provided, the internal ranking logic will automatically execute.
+   - Final results are saved to the project directory as 'best_candidates.csv'.
 
-- `linkedin_scraper.py`: The core script for scraping and ranking.
-- `employees.json`: Raw data extracted from LinkedIn.
-- `top_candidates.json`: AI/Keyword-ranked result in JSON.
-- `best_candidates.csv`: Final exported report.
-- `.gitignore`: Prevents sensitive files and cache from being uploaded.
+## Project Structure
 
-## ⚖️ Disclaimer
+- `linkedin_scraper.py`: Primary application containing scraping and analytical logic.
+- `employees.json`: Permanent storage for raw profile data.
+- `best_candidates.csv`: Final processed report containing ranked talent.
+- `.gitignore`: Configuration to exclude environment-specific files and temporary data assets.
 
-This tool is intended for educational and professional recruitment purposes only. Users must comply with LinkedIn's Terms of Service while using automation.
+## Compliance and Usage
 
----
-Built with ❤️ by [Hanikumar](https://github.com/hanikumar0)
+This software is developed for professional recruitment and educational research. Users are responsible for ensuring compliance with platform-specific terms of service and data privacy regulations.
