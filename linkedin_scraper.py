@@ -12,28 +12,21 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from openai import OpenAI
 
-# --- Configuration ---
 COMPANY_URL = "https://www.linkedin.com/company/gohypemedia/people/"
 OUTPUT_FILE = "employees.json"
 RANKED_FILE = "top_candidates.json"
 CSV_FILE = "best_candidates.csv"
-# Get API Key from environment variable for security
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 def setup_driver():
-    """Sets up the Selenium WebDriver."""
     chrome_options = Options()
-    # Manual setup - opens a standard Chrome window
     driver = webdriver.Chrome(options=chrome_options)
     return driver
 
 def manual_login(driver):
-    """Opens LinkedIn and waits for the user to log in manually."""
     print("Opening LinkedIn for manual login...")
     driver.get("https://www.linkedin.com/login")
     print("Please log in manually in the opened browser window.")
-    
-    # Wait until the URL changes indicating successful login
     while True:
         try:
             if "linkedin.com/feed" in driver.current_url or "linkedin.com/company" in driver.current_url:
@@ -46,13 +39,9 @@ def manual_login(driver):
     return True
 
 def scrape_employees(driver, limit=50):
-    """Scrapes employee data from the company's people page with broad selectors."""
     print(f"Navigating to {COMPANY_URL}...")
     driver.get(COMPANY_URL)
-    
     employees = []
-    
-    # Wait for the content area to load
     try:
         print("Waiting for list container...")
         WebDriverWait(driver, 20).until(
@@ -63,29 +52,24 @@ def scrape_employees(driver, limit=50):
         return []
 
     last_height = driver.execute_script("return document.body.scrollHeight")
-    
     while len(employees) < limit:
-        # Try multiple possible card selectors to handle LinkedIn layout shifts
         card_selectors = [
             "li.org-people-profile-card__card-spacing",
             ".org-people-profile-card",
             ".artdeco-card",
             "li.grid-community-item"
         ]
-        
         cards = []
         for selector in card_selectors:
             found = driver.find_elements(By.CSS_SELECTOR, selector)
             if len(found) > 0:
                 cards = found
                 break
-        
         if not cards:
             cards = driver.find_elements(By.CSS_SELECTOR, ".org-people-profiles-module li")
 
         for card in cards:
             try:
-                # Name
                 name = ""
                 for s in [".org-people-profile-card__profile-title", ".lt-line-clamp--single-line", "div[class*='title']"]:
                     try:
@@ -93,7 +77,6 @@ def scrape_employees(driver, limit=50):
                         if name: break
                     except: continue
 
-                # Headline
                 headline = ""
                 for s in [".lt-line-clamp--multi-line", ".artdeco-entity-lockup__subtitle", "div[class*='subtitle']"]:
                     try:
@@ -101,7 +84,6 @@ def scrape_employees(driver, limit=50):
                         if headline: break
                     except: continue
 
-                # Profile URL
                 profile_url = "None"
                 try:
                     link_elem = card.find_element(By.CSS_SELECTOR, "a")
@@ -115,14 +97,11 @@ def scrape_employees(driver, limit=50):
                     if not any(e['profile_url'] == profile_url for e in employees if profile_url != "None"):
                         employees.append(employee_data)
                         print(f"✅ [{len(employees)}] {name}")
-                
                 if len(employees) >= limit: break
             except: continue
 
-        # Smooth scrolling for lazy loading
         driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
         time.sleep(random.uniform(4, 7)) 
-        
         new_height = driver.execute_script("return document.body.scrollHeight")
         if new_height == last_height:
             driver.execute_script("window.scrollBy(0, -500);")
@@ -132,11 +111,9 @@ def scrape_employees(driver, limit=50):
             if driver.execute_script("return document.body.scrollHeight") == last_height:
                 break
         last_height = new_height
-        
     return employees
 
 def rank_candidates(employees):
-    """Keyword-based ranking engine (Fallback)."""
     weights = {
         "mern": 25, "react": 15, "node": 15, "express": 10, "mongodb": 10, "full stack": 20
     }
@@ -146,21 +123,16 @@ def rank_candidates(employees):
         txt = emp.get('headline', '').lower()
         for kw, val in weights.items():
             if kw in txt: score += val
-        
         emp_copy = emp.copy()
         emp_copy['score'] = score
         emp_copy['tier'] = "Top Talent" if score >= 30 else "Qualified" if score >= 15 else "Other"
         ranked.append(emp_copy)
-    
     return sorted(ranked, key=lambda x: x['score'], reverse=True)
 
 def analyze_with_ai(employees, api_key):
-    """Uses OpenAI to find the best MERN candidates."""
     client = OpenAI(api_key=api_key)
     profiles = "\n".join([f"- {e['name']}: {e['headline']}" for e in employees])
-
     prompt = f"Analyze these candidates for a MERN Stack project:\n{profiles}\n\nReturn JSON: {{'ranked_candidates': [{{'name':'','relevance_score':0,'reasoning':'','headline':'','profile_url':''}}]}}"
-
     try:
         print("🤖 AI Recruiter is analyzing candidates...")
         response = client.chat.completions.create(
@@ -184,8 +156,6 @@ def save_to_csv(candidates, filename):
 
 def main():
     print("\n" + "="*50 + "\nAI RECRUITER BOT\n" + "="*50)
-    
-    # 1. Check existing data
     data = []
     if os.path.exists(OUTPUT_FILE):
         with open(OUTPUT_FILE, 'r') as f:
@@ -194,7 +164,6 @@ def main():
             ans = input(f"[?] Found {len(data)} profiles. Use them? (y/n): ").lower()
             if ans != 'y': data = []
 
-    # 2. Scrape if no data
     if not data:
         bot = setup_driver()
         if manual_login(bot):
@@ -205,7 +174,6 @@ def main():
         else:
             bot.quit(); return
 
-    # 3. Rank with AI (Fallback to keywords if quota hit)
     res = analyze_with_ai(data, OPENAI_API_KEY)
     if not res:
         print("Applying internal keyword ranking...")
@@ -215,7 +183,6 @@ def main():
             if r['score'] > 0:
                 res.append({"name": r['name'], "relevance_score": r['score'], "reasoning": f"Headline Match ({r['tier']})", "headline": r['headline'], "profile_url": r['profile_url']})
 
-    # 4. Save and Show
     if res:
         save_to_csv(res, CSV_FILE)
         print("\n--- TOP RANKED ---")
