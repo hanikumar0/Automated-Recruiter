@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+employees.json
+top_candidates.json
+best_candidates.csv
+.env
+.agent/
+.gemini/
+.vscode/
